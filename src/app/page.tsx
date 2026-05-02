@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ExpenseTracker from "../components/ExpenseTracker";
 
 export default function Home() {
@@ -8,6 +8,24 @@ export default function Home() {
   const [income, setIncome] = useState(35000);
 
   const [dailyBudget, setDailyBudget] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // 💾 LOAD SAVED PLAN ON MOUNT
+  useEffect(() => {
+    const savedPlan = localStorage.getItem("moneyMindPlan");
+    if (savedPlan) {
+      try {
+        const { goal: savedGoal, months: savedMonths, income: savedIncome, dailyBudget: savedBudget } = JSON.parse(savedPlan);
+        setGoal(savedGoal);
+        setMonths(savedMonths);
+        setIncome(savedIncome);
+        setDailyBudget(savedBudget);
+      } catch (error) {
+        console.error("Error loading saved plan:", error);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
 
   const calculatePlan = async () => {
     const monthlySaving = goal / months;
@@ -15,6 +33,17 @@ export default function Home() {
     const daily = remaining / 30;
 
     setDailyBudget(daily);
+
+    // 💾 SAVE PLAN TO LOCALSTORAGE
+    localStorage.setItem(
+      "moneyMindPlan",
+      JSON.stringify({
+        goal,
+        months,
+        income,
+        dailyBudget: daily,
+      })
+    );
 
     // Save plan to DB
     await fetch("/api/plan", {
@@ -27,6 +56,28 @@ export default function Home() {
       }),
     });
   };
+
+  // 🔄 AUTO-CALCULATE WHEN INPUTS CHANGE (if plan was already calculated)
+  useEffect(() => {
+    if (isLoaded && dailyBudget > 0) {
+      // Auto-recalculate when inputs change
+      const monthlySaving = goal / months;
+      const remaining = income - monthlySaving;
+      const daily = remaining / 30;
+      setDailyBudget(daily);
+
+      // Save updated plan
+      localStorage.setItem(
+        "moneyMindPlan",
+        JSON.stringify({
+          goal,
+          months,
+          income,
+          dailyBudget: daily,
+        })
+      );
+    }
+  }, [goal, months, income, isLoaded]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 space-y-6">
@@ -71,17 +122,36 @@ export default function Home() {
           />
         </div>
 
-        <button
-          onClick={calculatePlan}
-          className="w-full bg-black text-white py-2 rounded"
-        >
-          Calculate Plan
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={calculatePlan}
+            className="flex-1 bg-black text-white py-2 rounded"
+          >
+            Calculate Plan
+          </button>
+
+          {dailyBudget > 0 && (
+            <button
+              onClick={() => {
+                setDailyBudget(0);
+                localStorage.removeItem("moneyMindPlan");
+              }}
+              className="bg-red-500 text-white px-4 py-2 rounded"
+            >
+              Reset
+            </button>
+          )}
+        </div>
 
         {dailyBudget > 0 && (
-          <p className="text-green-600 font-medium">
-            Daily Budget: Rs {dailyBudget.toFixed(2)}
-          </p>
+          <div className="bg-green-50 border border-green-200 p-4 rounded">
+            <p className="text-green-700 font-medium">
+              ✅ Daily Budget: Rs {dailyBudget.toFixed(2)}
+            </p>
+            <p className="text-green-600 text-sm">
+              Monthly Target: Rs {(goal / months).toFixed(2)} | Remaining after saving: Rs {((income - (goal / months)) / 30).toFixed(2)} per day
+            </p>
+          </div>
         )}
       </div>
 

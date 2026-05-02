@@ -15,7 +15,7 @@ type Expense = {
   createdAt: string;
 };
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b"];
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];
 
 export default function ExpenseTracker({ dailyBudget }: any) {
 
@@ -25,6 +25,10 @@ export default function ExpenseTracker({ dailyBudget }: any) {
     new Date().toISOString().split("T")[0]
   );
   const [advice, setAdvice] = useState("");
+  
+  // 🗓️ MONTH SELECTOR FOR CHARTS
+  const [viewMonth, setViewMonth] = useState<number>(new Date().getMonth());
+  const [viewYear, setViewYear] = useState<number>(new Date().getFullYear());
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -170,15 +174,15 @@ export default function ExpenseTracker({ dailyBudget }: any) {
     fetchExpenses();
   };
 
-  // 📊 PIE DATA (FILTERED MONTH)
+  // 📊 PIE DATA (FILTERED BY VIEWED MONTH)
   const categoryMap: Record<string, number> = {};
 
   expenses.forEach((e) => {
     const d = new Date(e.createdAt);
 
     if (
-      d.getMonth() === selectedMonth &&
-      d.getFullYear() === selectedYear
+      d.getMonth() === viewMonth &&
+      d.getFullYear() === viewYear
     ) {
       categoryMap[e.category] =
         (categoryMap[e.category] || 0) + e.amount;
@@ -190,25 +194,52 @@ export default function ExpenseTracker({ dailyBudget }: any) {
     value: categoryMap[k],
   }));
 
-  // 📊 LINE DATA (FILTERED MONTH)
+  // 📊 GET MONTHLY TOTAL FOR VIEWED MONTH
+  const viewedMonthlyExpenses = Object.values(categoryMap).reduce((a, b) => a + b, 0);
+
+  // 📊 LINE DATA (FILTERED BY VIEWED MONTH - DAILY TREND)
   const dailyMap: Record<string, number> = {};
 
   expenses.forEach((e) => {
     const d = new Date(e.createdAt);
 
     if (
-      d.getMonth() === selectedMonth &&
-      d.getFullYear() === selectedYear
+      d.getMonth() === viewMonth &&
+      d.getFullYear() === viewYear
     ) {
       const day = d.getDate();
       dailyMap[day] = (dailyMap[day] || 0) + e.amount;
     }
   });
 
-  const lineData = Object.keys(dailyMap).map((d) => ({
-    day: d,
-    amount: dailyMap[d],
-  }));
+  const lineData = Object.keys(dailyMap)
+    .sort((a, b) => parseInt(a) - parseInt(b))
+    .map((d) => ({
+      day: d,
+      amount: dailyMap[d],
+    }));
+
+  // 🗓️ HELPER FUNCTIONS FOR MONTH NAVIGATION
+  const goToPreviousMonth = () => {
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear(viewYear - 1);
+    } else {
+      setViewMonth(viewMonth - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear(viewYear + 1);
+    } else {
+      setViewMonth(viewMonth + 1);
+    }
+  };
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const currentDisplayMonth = `${monthNames[viewMonth]} ${viewYear}`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -285,7 +316,9 @@ export default function ExpenseTracker({ dailyBudget }: any) {
           </thead>
 
           <tbody>
-            {expenses.map((exp) => (
+            {expenses
+              .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+              .map((exp) => (
               <tr key={exp._id} className="border-t">
                 <td className="p-2">
                   {editingId === exp._id ? (
@@ -325,6 +358,47 @@ export default function ExpenseTracker({ dailyBudget }: any) {
       </div>
 
       {/* CHARTS */}
+      <div className="space-y-4">
+        {/* MONTH NAVIGATION */}
+        <div className="bg-white p-4 rounded shadow flex items-center justify-between">
+          <button
+            onClick={goToPreviousMonth}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+          >
+            ← Previous
+          </button>
+          
+          <h2 className="text-xl font-bold text-center">{currentDisplayMonth}</h2>
+          
+          <button
+            onClick={goToNextMonth}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+          >
+            Next →
+          </button>
+        </div>
+
+        {/* MONTHLY SUMMARY */}
+        <div className="bg-white p-4 rounded shadow">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-gray-600 text-sm">Monthly Budget</p>
+              <p className="text-2xl font-bold">Rs {(dailyBudget * 30).toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 text-sm">Total Spent</p>
+              <p className="text-2xl font-bold">Rs {viewedMonthlyExpenses.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 text-sm">Remaining</p>
+              <p className={`text-2xl font-bold ${(dailyBudget * 30 - viewedMonthlyExpenses) < 0 ? 'text-red-500' : 'text-green-600'}`}>
+                Rs {((dailyBudget * 30) - viewedMonthlyExpenses).toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
 
         <div className="bg-white p-4 rounded shadow">
