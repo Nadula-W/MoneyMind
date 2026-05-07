@@ -46,15 +46,23 @@ export default function Home() {
     );
 
     // Save plan to DB
-    await fetch("/api/plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        goal,
-        months,
-        predictedIncome: income,
-      }),
-    });
+    try {
+      const res = await fetch("/api/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          goal,
+          months,
+          predictedIncome: income,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to save plan:", res.status);
+      }
+    } catch (error) {
+      console.error("Error saving plan:", error);
+    }
   };
 
   // 🔄 AUTO-CALCULATE WHEN INPUTS CHANGE (if plan was already calculated)

@@ -45,8 +45,20 @@ export default function ExpenseTracker({ dailyBudget }: any) {
   }, [date]);
 
   const fetchExpenses = async () => {
-    const res = await fetch("/api/expenses");
-    setExpenses(await res.json());
+    try {
+      const res = await fetch("/api/expenses");
+      if (!res.ok) {
+        console.error("Failed to fetch expenses:", res.status);
+        setExpenses([]);
+        return;
+      }
+      const data = await res.json();
+      // Ensure we have an array
+      setExpenses(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      setExpenses([]);
+    }
   };
 
   // 🧠 GET PREDICTION FOR SELECTED DATE
@@ -73,6 +85,11 @@ export default function ExpenseTracker({ dailyBudget }: any) {
           date: date,
         }),
       });
+
+      if (!res.ok) {
+        console.error("Failed to fetch prediction:", res.status);
+        return;
+      }
 
       const data = await res.json();
       setAdvice(data.decision || "");
@@ -127,22 +144,30 @@ export default function ExpenseTracker({ dailyBudget }: any) {
         }),
       });
 
+      if (!res.ok) {
+        console.error("Failed to analyze expense:", res.status);
+        return;
+      }
+
       const data = await res.json();
-      setAdvice(data.decision);
+      setAdvice(data.decision || "Unable to generate advice");
 
-      await fetch("/api/expenses", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-          ...data.analysis,
-          createdAt: new Date(date).toISOString(), // ✅ ISO format with time
-        }),
-      });
+      if (data.analysis) {
+        await fetch("/api/expenses", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({
+            ...data.analysis,
+            createdAt: new Date(date).toISOString(), // ✅ ISO format with time
+          }),
+        });
 
-      setInput("");
-      fetchExpenses();
+        setInput("");
+        fetchExpenses();
+      }
     } catch (error) {
       console.error("Error adding expense:", error);
+      setAdvice("Error processing expense");
     }
   };
 
@@ -153,25 +178,43 @@ export default function ExpenseTracker({ dailyBudget }: any) {
   };
 
   const saveEdit = async (id: string) => {
-    await fetch("/api/expenses", {
-      method: "PUT",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ id, item: editValue }),
-    });
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id, item: editValue }),
+      });
 
-    setEditingId(null);
-    fetchExpenses();
+      if (!res.ok) {
+        console.error("Failed to save edit:", res.status);
+        return;
+      }
+
+      setEditingId(null);
+      fetchExpenses();
+    } catch (error) {
+      console.error("Error saving edit:", error);
+    }
   };
 
   // ❌ DELETE
   const deleteExpense = async (id: string) => {
-    await fetch("/api/expenses", {
-      method: "DELETE",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ id }),
-    });
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "DELETE",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id }),
+      });
 
-    fetchExpenses();
+      if (!res.ok) {
+        console.error("Failed to delete expense:", res.status);
+        return;
+      }
+
+      fetchExpenses();
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+    }
   };
 
   // 📊 PIE DATA (FILTERED BY VIEWED MONTH)
