@@ -1,7 +1,7 @@
 import Groq from "groq-sdk";
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY || "",
 });
 
 export async function getDecision({
@@ -13,6 +13,10 @@ export async function getDecision({
   totalSpent: number;
   newExpense: number;
 }) {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY environment variable not set");
+  }
+
   const prompt = `You are a smart financial advisor. Give ONE SHORT sentence (under 15 words) about spending based on this:
 - Daily budget: Rs ${dailyBudget}
 - Already spent: Rs ${totalSpent}
