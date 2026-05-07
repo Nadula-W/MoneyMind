@@ -1,0 +1,13 @@
+[{
+  "_id": {
+    "$oid": "69e32dbe5ceed50d6019a2ea"
+  },
+  "income": 35000,
+  "goal": 260000,
+  "months": 14,
+  "dailyBudget": 547.6190476190476,
+  "createdAt": {
+    "$date": "2026-04-18T07:07:42.561Z"
+  },
+  "predictedIncome": 35000
+}]

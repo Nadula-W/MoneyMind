@@ -1,0 +1,98 @@
+[{
+  "_id": {
+    "$oid": "69e5a45eb1f7efd33accf86c"
+  },
+  "amount": 260,
+  "category": "food",
+  "item": "breakfast",
+  "createdAt": {
+    "$date": "2026-04-20T03:58:22.093Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e60cf8b1f7efd33accf86d"
+  },
+  "amount": 900,
+  "category": "transport",
+  "item": "bike",
+  "createdAt": {
+    "$date": "2026-04-20T11:24:40.299Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e60d27b1f7efd33accf86f"
+  },
+  "amount": 150,
+  "category": "food",
+  "item": "lunch",
+  "createdAt": {
+    "$date": "2026-04-20T11:25:27.557Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69eb3c589dd3fe822a058310"
+  },
+  "amount": 1300,
+  "category": "other",
+  "item": "party",
+  "createdAt": {
+    "$date": "2026-04-24T09:48:08.281Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69f31192d869480bb9b2562a"
+  },
+  "amount": 200,
+  "category": "food",
+  "item": "lunch",
+  "createdAt": "2026-04-30T00:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "69f31c0fbaa97f4a3d430f68"
+  },
+  "amount": 160,
+  "category": "food",
+  "item": "dinner",
+  "createdAt": "2026-04-30T00:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "69f31cbdbaa97f4a3d430f69"
+  },
+  "amount": 150,
+  "category": "food",
+  "item": "tea",
+  "createdAt": "2026-04-30T00:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "69f5af2ebaa97f4a3d430f6b"
+  },
+  "amount": 600,
+  "category": "transport",
+  "item": "bus",
+  "createdAt": "2026-05-02T00:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "69f5af3dbaa97f4a3d430f6c"
+  },
+  "amount": 300,
+  "category": "food",
+  "item": "lunch",
+  "createdAt": "2026-05-02T00:00:00.000Z"
+},
+{
+  "_id": {
+    "$oid": "69f5dec1baa97f4a3d430f6d"
+  },
+  "amount": 800,
+  "category": "transport",
+  "item": "bus ticket",
+  "createdAt": "2026-05-02T00:00:00.000Z"
+}]
