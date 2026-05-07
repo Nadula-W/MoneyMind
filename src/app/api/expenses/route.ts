@@ -15,9 +15,16 @@ export async function GET() {
 
     return Response.json(expenses);
   } catch (error: any) {
-    console.error("GET /api/expenses error:", error);
+    console.error("GET /api/expenses error:", error.message || error);
     return Response.json(
-      { error: "Failed to fetch expenses", details: error.message },
+      { 
+        error: "Failed to fetch expenses", 
+        details: error.message || String(error),
+        env: {
+          mongodb: process.env.MONGODB_URI ? "SET" : "NOT SET",
+          groq: process.env.GROQ_API_KEY ? "SET" : "NOT SET"
+        }
+      },
       { status: 500 }
     );
   }
