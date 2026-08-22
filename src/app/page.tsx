@@ -164,7 +164,7 @@ export default function Home() {
       </div>
 
       {/* DASHBOARD */}
-      <ExpenseTracker dailyBudget={dailyBudget} />
+      <ExpenseTracker dailyBudget={dailyBudget} income={income} />
 
     </div>
   );

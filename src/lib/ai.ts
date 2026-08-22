@@ -21,8 +21,8 @@ RESPOND WITH ONLY THIS JSON FORMAT (no markdown, no explanation):
 
   try {
     const message = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      max_tokens: 200,
+      model: "openai/gpt-oss-20b",
+      max_tokens: 512,
       messages: [
         {
           role: "user",
@@ -32,6 +32,9 @@ RESPOND WITH ONLY THIS JSON FORMAT (no markdown, no explanation):
     });
 
     const responseText = message.choices[0]?.message?.content || "";
+    if (!responseText.trim()) {
+      throw new Error("AI returned an empty expense analysis");
+    }
     return responseText;
   } catch (error) {
     console.error("Groq API Error:", error);

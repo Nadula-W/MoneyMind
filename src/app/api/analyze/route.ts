@@ -65,9 +65,26 @@ export async function POST(req: Request) {
           .replace(/```\n?/g, "")
           .trim();
         
-        // Extract JSON if wrapped in other text
-        const jsonMatch = clean.match(/\{[\s\S]*\}/);
-        const jsonStr = jsonMatch ? jsonMatch[0] : clean;
+        // Extract JSON by parsing brace depth to handle trailing text
+        let jsonStr = clean;
+        const firstBrace = clean.indexOf('{');
+        if (firstBrace !== -1) {
+          let depth = 0;
+          let endIndex = -1;
+          for (let i = firstBrace; i < clean.length; i++) {
+            if (clean[i] === '{') depth++;
+            else if (clean[i] === '}') {
+              depth--;
+              if (depth === 0) {
+                endIndex = i + 1;
+                break;
+              }
+            }
+          }
+          if (endIndex > firstBrace) {
+            jsonStr = clean.substring(firstBrace, endIndex);
+          }
+        }
         
         parsed = JSON.parse(jsonStr);
       } catch (parseError) {

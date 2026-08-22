@@ -1,4 +1,5 @@
 import clientPromise from "../../../lib/mongodb";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
@@ -6,10 +7,17 @@ export async function GET() {
     const db = client.db("moneymind");
 
     const plan = await db.collection("plan").findOne({});
-    return Response.json(plan || {});
+    const normalized = plan
+      ? {
+          ...plan,
+          income: plan.predictedIncome ?? plan.income,
+        }
+      : {};
+
+    return NextResponse.json(normalized);
   } catch (error: any) {
     console.error("GET /api/plan error:", error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to fetch plan", details: error.message },
       { status: 500 }
     );
@@ -29,16 +37,19 @@ export async function POST(req: Request) {
         $set: {
           goal: body.goal,
           months: body.months,
-          predictedIncome: body.predictedIncome,
+          // support both `predictedIncome` and `income` payloads
+          predictedIncome: body.predictedIncome ?? body.income,
+          // persist dailyBudget if provided
+          dailyBudget: body.dailyBudget,
         },
       },
       { upsert: true }
     );
 
-    return Response.json({ success: true });
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("POST /api/plan error:", error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to save plan", details: error.message },
       { status: 500 }
     );

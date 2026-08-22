@@ -26,10 +26,41 @@ const graph = new StateGraph(AgentState)
   .addNode("analyzeNode", async (state) => {
     try {
       const result = await analyzeExpense(state.input);
-      const clean = result.replace(/```json|```/g, "").trim();
-
+      
+      // Clean markdown code blocks
+      let clean = result.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      
+      // Extract JSON by parsing brace depth to handle trailing text
+      let jsonStr = clean;
+      const firstBrace = clean.indexOf('{');
+      if (firstBrace !== -1) {
+        let depth = 0;
+        let endIndex = -1;
+        for (let i = firstBrace; i < clean.length; i++) {
+          if (clean[i] === '{') depth++;
+          else if (clean[i] === '}') {
+            depth--;
+            if (depth === 0) {
+              endIndex = i + 1;
+              break;
+            }
+          }
+        }
+        if (endIndex > firstBrace) {
+          jsonStr = clean.substring(firstBrace, endIndex);
+        }
+      }
+      
+      // Parse and validate
+      const parsed = JSON.parse(jsonStr);
+      
+      // Ensure required fields
       return {
-        analysis: JSON.parse(clean),
+        analysis: {
+          amount: parsed.amount || 0,
+          category: parsed.category || "other",
+          item: parsed.item || state.input,
+        },
       };
     } catch (error) {
       console.error("Analyze Error:", error);
